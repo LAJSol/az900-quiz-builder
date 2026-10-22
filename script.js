@@ -17,6 +17,7 @@ import "./style.css";
     home:    document.getElementById("screen-home"),
     quiz:    document.getElementById("screen-quiz"),
     results: document.getElementById("screen-results"),
+    bookmarks: document.getElementById("screen-bookmarks"),
   };
   const topicListEl = document.getElementById("topic-list");
   const quizTopicEl = document.getElementById("quiz-topic");
@@ -36,10 +37,59 @@ import "./style.css";
   const reviewListEl = document.getElementById("review-list");
   const retryBtn = document.getElementById("retry-btn");
   const homeBtn  = document.getElementById("home-btn");
+  const bookmarkToggleEl = document.getElementById("bookmark-toggle");
+  const topicChartBarsEl = document.getElementById("topic-chart-bars");
+  const bookmarksBtn = document.getElementById("bookmarks-btn");
+  const bookmarksCountEl = document.getElementById("bookmarks-count");
+  const bookmarksListEl = document.getElementById("bookmarks-list");
+  const bookmarksEmptyEl = document.getElementById("bookmarks-empty");
+  const bookmarksBackBtn = document.getElementById("bookmarks-back-btn");
 
   /* ---------- App state ---------- */
   let currentTopic = null;   // topic key the user chose
   let quiz = null;           // current quiz session object (see startQuiz)
+
+  /* ---------- Bookmarks (persisted in localStorage) ---------- */
+  const BOOKMARK_KEY = "az900_bookmarks_v1";
+  // Each bookmark: { id, topic, question, options, correctIndex, explanation }
+  function loadBookmarks() {
+    try { return JSON.parse(localStorage.getItem(BOOKMARK_KEY) || "[]"); }
+    catch (e) { return []; }
+  }
+  function saveBookmarks(list) {
+    localStorage.setItem(BOOKMARK_KEY, JSON.stringify(list));
+    updateBookmarksCount();
+  }
+  function updateBookmarksCount() {
+    const n = loadBookmarks().length;
+    bookmarksCountEl.textContent = n;
+    bookmarksCountEl.hidden = n === 0;
+  }
+  function isBookmarked(q) {
+    return loadBookmarks().some(function (b) { return b.id === q.id; });
+  }
+  function toggleBookmark(q) {
+    const list = loadBookmarks();
+    const i = list.findIndex(function (b) { return b.id === q.id; });
+    if (i >= 0) list.splice(i, 1);
+    else list.push({
+      id: q.id, topic: q.topic, question: q.question,
+      options: q.options, correctIndex: q.correctIndex,
+      explanation: q.explanation,
+    });
+    saveBookmarks(list);
+    return i < 0; // true if now bookmarked
+  }
+
+  /* ---------- Per-topic scores (persisted across quizzes) ---------- */
+  const SCORES_KEY = "az900_topic_scores_v1";
+  function loadTopicScores() {
+    try { return JSON.parse(localStorage.getItem(SCORES_KEY) || "{}"); }
+    catch (e) { return {}; }
+  }
+  function saveTopicScores(obj) {
+    localStorage.setItem(SCORES_KEY, JSON.stringify(obj));
+  }
 
   /* ============================================================
      SCREEN SWITCHING
@@ -59,7 +109,7 @@ import "./style.css";
      ============================================================ */
   function renderTopics() {
     topicListEl.innerHTML = "";
-    TOPICS.forEach((topic) => {
+    TOPICS.forEach(function (topic) {
       const card = document.createElement("button");
       card.type = "button";
       card.className = "topic-card";
@@ -77,6 +127,41 @@ import "./style.css";
       });
       topicListEl.appendChild(card);
     });
+    updateBookmarksCount();
+  }
+
+  /* ============================================================
+     BOOKMARKS SCREEN
+     ============================================================ */
+  function renderBookmarks() {
+    const list = loadBookmarks();
+    bookmarksListEl.innerHTML = "";
+    if (list.length === 0) {
+      bookmarksEmptyEl.hidden = false;
+      return;
+    }
+    bookmarksEmptyEl.hidden = true;
+    list.forEach(function (b) {
+      const topicMeta = TOPICS.find(function (t) { return t.key === b.topic; });
+      const div = document.createElement("div");
+      div.className = "bookmark-item";
+      div.innerHTML =
+        '<span class="bi-topic">' + (topicMeta ? topicMeta.title : b.topic) + "</span>" +
+        '<p class="bi-q">' + b.question + "</p>" +
+        '<p class="bi-a">Correct answer: ' + b.options[b.correctIndex] + "</p>" +
+        '<p class="bi-e">' + b.explanation + "</p>";
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "bi-remove";
+      rm.textContent = "Remove bookmark";
+      rm.addEventListener("click", function () {
+        const all = loadBookmarks().filter(function (x) { return x.id !== b.id; });
+        saveBookmarks(all);
+        renderBookmarks();
+      });
+      div.appendChild(rm);
+      bookmarksListEl.appendChild(div);
+    });
   }
 
   /* ============================================================
@@ -88,7 +173,7 @@ import "./style.css";
     currentTopic = topicKey;
     // Pull only the questions for this topic. (New array so we never
     // accidentally mutate the original QUESTIONS data.)
-    const topicQuestions = QUESTIONS.filter((q) => q.topic === topicKey);
+    const topicQuestions = QUESTIONS.filter(function (q) { return q.topic === topicKey; });
 
     if (topicQuestions.length === 0) {
       // Graceful empty state if a topic has no questions yet.
@@ -104,12 +189,20 @@ import "./style.css";
       return;
     }
 
+    // Assign stable ids to each question for bookmark tracking.
+    const withIds = topicQuestions.map(function (q, i) {
+      return Object.assign({}, q, { id: topicKey + "-" + i });
+    });
+
     quiz = {
-      questions: topicQuestions,
+      questions: withIds,
       index: 0,          // current question (0-based)
       score: 0,          // correct answers so far
       missed: [],        // [{question, correctAnswer, explanation}]
+      topicScores: loadTopicScores(),   // persisted across quizzes
     };
+    // Reset the current topic's score so this run replaces the previous one.
+    quiz.topicScores[topicKey] = { correct: 0, total: 0 };
 
     const topicTitle = TOPICS.find((t) => t.key === topicKey).title;
     quizTopicEl.textContent = topicTitle;
@@ -152,6 +245,14 @@ import "./style.css";
     // always in the same slot, but keep track of where it lands.
     const shuffled = shuffleOptions(q);
     quiz.currentShuffled = shuffled; // remember for handleAnswer
+
+    // Bookmark toggle state for this question.
+    bookmarkToggleEl.classList.remove("is-bookmarked");
+    bookmarkToggleEl.setAttribute("aria-pressed", "false");
+    if (isBookmarked(q)) {
+      bookmarkToggleEl.classList.add("is-bookmarked");
+      bookmarkToggleEl.setAttribute("aria-pressed", "true");
+    }
 
     optionsListEl.innerHTML = "";
     shuffled.forEach(function (item, i) {
@@ -228,11 +329,24 @@ import "./style.css";
     void feedbackEl.offsetWidth;
     feedbackEl.classList.add("feedback");
 
+    // Track per-topic score for the results chart.
+    quiz.topicScores[q.topic].total += 1;
+    if (isCorrect) quiz.topicScores[q.topic].correct += 1;
+
     // Next button label changes on the last question.
     nextBtn.textContent = (quiz.index + 1 >= quiz.questions.length)
       ? "See results"
       : "Next";
   }
+
+  // Bookmark toggle handler on the current question.
+  bookmarkToggleEl.addEventListener("click", function () {
+    if (!quiz || !quiz.questions[quiz.index]) return;
+    const q = quiz.questions[quiz.index];
+    const nowBookmarked = toggleBookmark(q);
+    bookmarkToggleEl.classList.toggle("is-bookmarked", nowBookmarked);
+    bookmarkToggleEl.setAttribute("aria-pressed", nowBookmarked ? "true" : "false");
+  });
 
   // Advance to the next question or finish the quiz.
   function handleNext() {
@@ -275,6 +389,10 @@ import "./style.css";
       });
     });
 
+    // Per-topic score breakdown chart.
+    saveTopicScores(quiz.topicScores);
+    renderTopicChart();
+
     // Review what you got wrong
     if (quiz.missed.length === 0) {
       reviewSectionEl.hidden = true;
@@ -306,6 +424,45 @@ import "./style.css";
               .getPropertyValue("--blue-500").trim();
   }
 
+  // Render the per-topic score breakdown on the results screen.
+  // Shows one row per topic, with a colored bar and "X / Y" label.
+  function renderTopicChart() {
+    topicChartBarsEl.innerHTML = "";
+    TOPICS.forEach(function (t) {
+      const s = quiz.topicScores[t.key];
+      const row = document.createElement("div");
+      row.className = "topic-chart-row";
+      const bar = document.createElement("div");
+      bar.className = "topic-chart-track";
+      const fill = document.createElement("div");
+      fill.className = "topic-chart-fill";
+      bar.appendChild(fill);
+      const label = document.createElement("div");
+      label.className = "topic-chart-label";
+      const nameSpan = document.createElement("span");
+      nameSpan.className = "topic-chart-name";
+      nameSpan.textContent = t.title;
+      const scoreSpan = document.createElement("span");
+      scoreSpan.className = "topic-chart-score";
+      scoreSpan.textContent = s ? (s.correct + " / " + s.total) : "0 / 0";
+      label.appendChild(nameSpan);
+      label.appendChild(scoreSpan);
+      row.appendChild(label);
+      row.appendChild(bar);
+      topicChartBarsEl.appendChild(row);
+
+      // Animate the fill in on the next frame so it grows from 0.
+      const pct = s ? Math.round((s.correct / s.total) * 100) : 0;
+      const band = pct >= 80 ? "is-good" : (pct >= 50 ? "is-mid" : "is-low");
+      fill.classList.add(band);
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          fill.style.width = pct + "%";
+        });
+      });
+    });
+  }
+
   // Encouraging, non-judgmental feedback message based on the score.
   function messageFor(pct) {
     if (pct === 100) return "Perfect! You've mastered this topic. On to the next.";
@@ -323,6 +480,13 @@ import "./style.css";
     startQuiz(currentTopic);
   });
   homeBtn.addEventListener("click", function () {
+    showScreen("home");
+  });
+  bookmarksBtn.addEventListener("click", function () {
+    renderBookmarks();
+    showScreen("bookmarks");
+  });
+  bookmarksBackBtn.addEventListener("click", function () {
     showScreen("home");
   });
 
