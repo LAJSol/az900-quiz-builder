@@ -58,6 +58,115 @@ import "./style.css";
   let muted = false;
   let audioCtx = null;
 
+  /* ---------- Confetti (canvas-based burst) ---------- */
+  const CONFETTI_THRESHOLD = 80;   // celebrate scores >= 80%
+  let confettiCanvas = null;
+  let confettiCtx = null;
+  let confettiParticles = [];
+  let confettiRafId = null;
+
+  function initConfettiCanvas() {
+    if (!confettiCanvas) {
+      confettiCanvas = document.createElement("canvas");
+      confettiCanvas.id = "confetti-canvas";
+      confettiCanvas.setAttribute("aria-hidden", "true");
+      confettiCanvas.className = "confetti-canvas";
+      document.body.appendChild(confettiCanvas);
+      confettiCtx = confettiCanvas.getContext("2d");
+    }
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+  }
+
+  function startConfetti() {
+    initConfettiCanvas();
+    confettiCanvas.style.display = "block";
+    confettiParticles = [];
+
+    const colors = [
+      "#2f7fe0", "#5b9bf0", "#1f9d57", "#f5a623",
+      "#d8423a", "#88baef", "#c8f0d8", "#fff",
+    ];
+    const count = 140;
+    const cx = confettiCanvas.width / 2;
+    const cy = confettiCanvas.height / 3;
+
+    for (var i = 0; i < count; i++) {
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 4 + Math.random() * 9;
+      confettiParticles.push({
+        x: cx,
+        y: cy,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 3,
+        gravity: 0.28 + Math.random() * 0.1,
+        size: 6 + Math.random() * 8,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.3,
+        opacity: 1,
+        shape: Math.random() > 0.5 ? "rect" : "circle",
+      });
+    }
+
+    if (confettiRafId) cancelAnimationFrame(confettiRafId);
+    animateConfetti();
+  }
+
+  function animateConfetti() {
+    confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    var alive = 0;
+    for (var i = 0; i < confettiParticles.length; i++) {
+      var p = confettiParticles[i];
+      p.vy += p.gravity;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vx *= 0.99;
+      p.rotation += p.rotationSpeed;
+      if (p.y > confettiCanvas.height * 0.75) p.opacity -= 0.02;
+      if (p.opacity <= 0) continue;
+      alive++;
+
+      confettiCtx.save();
+      confettiCtx.globalAlpha = Math.max(0, p.opacity);
+      confettiCtx.translate(p.x, p.y);
+      confettiCtx.rotate(p.rotation);
+      confettiCtx.fillStyle = p.color;
+      if (p.shape === "rect") {
+        confettiCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      } else {
+        confettiCtx.beginPath();
+        confettiCtx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        confettiCtx.fill();
+      }
+      confettiCtx.restore();
+    }
+
+    if (alive > 0) {
+      confettiRafId = requestAnimationFrame(animateConfetti);
+    } else {
+      confettiCanvas.style.display = "none";
+      confettiRafId = null;
+    }
+  }
+
+  function stopConfetti() {
+    if (confettiRafId) cancelAnimationFrame(confettiRafId);
+    confettiRafId = null;
+    if (confettiCanvas) confettiCanvas.style.display = "none";
+    confettiParticles = [];
+  }
+
+  // Resize handler keeps the canvas full-screen.
+  window.addEventListener("resize", function () {
+    if (confettiCanvas && confettiCanvas.style.display !== "none") {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+  });
+
+  /* ---------- Bookmarks (persisted in localStorage) ---------- */
+
   function loadMuted() {
     try { return localStorage.getItem(MUTE_KEY) === "1"; }
     catch (e) { return false; }
@@ -164,6 +273,8 @@ import "./style.css";
   function showScreen(name) {
     Object.values(screens).forEach((s) => s.classList.remove("is-active"));
     screens[name].classList.add("is-active");
+    // Stop confetti when leaving the results screen.
+    if (name !== "results") stopConfetti();
     // Move focus to the top of the screen for screen readers.
     screens[name].setAttribute("tabindex", "-1");
     screens[name].focus({ preventScroll: true });
@@ -480,6 +591,13 @@ import "./style.css";
           '<p class="e">' + item.explanation + "</p>";
         reviewListEl.appendChild(div);
       });
+    }
+
+    // Celebratory confetti for high scores.
+    if (pct >= CONFETTI_THRESHOLD) {
+      startConfetti();
+    } else {
+      stopConfetti();
     }
 
     showScreen("results");
