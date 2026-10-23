@@ -711,6 +711,23 @@ import "./style.css";
   muteToggleBtn.addEventListener("click", toggleMute);
   themeToggleBtn.addEventListener("click", toggleTheme);
 
+  /* ---------- Keyboard shortcuts for toolbar ---------- */
+  // d = dark mode, m = mute, b = bookmarks
+  document.addEventListener("keydown", function (e) {
+    // Ignore when typing in an input/textarea or a modifier is held.
+    var tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea" || tag === "select") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var key = e.key.toLowerCase();
+    if (key === "d") { e.preventDefault(); toggleTheme(); }
+    else if (key === "m") { e.preventDefault(); toggleMute(); }
+    else if (key === "b") {
+      e.preventDefault();
+      renderBookmarks();
+      showScreen("bookmarks");
+    }
+  });
+
   /* ============================================================
      INIT
      ============================================================ */
