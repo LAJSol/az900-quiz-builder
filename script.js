@@ -297,6 +297,19 @@ import "./style.css";
     localStorage.setItem(SCORES_KEY, JSON.stringify(obj));
   }
 
+  /* ---------- Last quiz results (persisted for the results button) ---------- */
+  const LAST_RESULTS_KEY = "az900_last_results_v1";
+  function loadLastResults() {
+    try { return JSON.parse(localStorage.getItem(LAST_RESULTS_KEY) || "null"); }
+    catch (e) { return null; }
+  }
+  function saveLastResults(data) {
+    localStorage.setItem(LAST_RESULTS_KEY, JSON.stringify(data));
+  }
+  function hasLastResults() {
+    return loadLastResults() !== null;
+  }
+
   /* ============================================================
      SCREEN SWITCHING
      ============================================================ */
@@ -630,6 +643,63 @@ import "./style.css";
       stopConfetti();
     }
 
+    // Persist the last results so the results toolbar button can restore them.
+    saveLastResults({
+      topic: currentTopic,
+      score: score,
+      total: total,
+      missed: quiz.missed,
+      topicScores: quiz.topicScores,
+    });
+
+    showScreen("results");
+  }
+
+  // Restore the results screen from persisted data (used by the results button).
+  function showResultsFromStore() {
+    var data = loadLastResults();
+    if (!data) return;
+    var total = data.total;
+    var score = data.score;
+    var pct = Math.round((score / total) * 100);
+
+    resultsScoreEl.textContent = pct + "%";
+    document.getElementById("results-score-sub").textContent =
+      score + " of " + total + " correct";
+    resultsMessageEl.textContent = messageFor(pct);
+
+    var circumference = 2 * Math.PI * 62;
+    var offset = circumference * (1 - pct / 100);
+    ringProgressEl.style.strokeDasharray = circumference.toFixed(2);
+    ringProgressEl.style.strokeDashoffset = circumference.toFixed(2);
+    ringProgressEl.style.stroke = ringColorFor(pct);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        ringProgressEl.style.strokeDashoffset = offset.toFixed(2);
+      });
+    });
+
+    currentTopic = data.topic;
+    quiz = { topicScores: data.topicScores, missed: data.missed };
+    renderTopicChart();
+
+    if (data.missed.length === 0) {
+      reviewSectionEl.hidden = true;
+      reviewListEl.innerHTML = "";
+    } else {
+      reviewSectionEl.hidden = false;
+      reviewListEl.innerHTML = "";
+      data.missed.forEach(function (item) {
+        var div = document.createElement("div");
+        div.className = "review-item";
+        div.innerHTML =
+          '<p class="q">' + item.question + "</p>" +
+          '<p class="a">Correct answer: ' + item.correctAnswer + "</p>" +
+          '<p class="e">' + item.explanation + "</p>";
+        reviewListEl.appendChild(div);
+      });
+    }
+
     showScreen("results");
   }
 
@@ -704,6 +774,9 @@ import "./style.css";
   bookmarksBtn.addEventListener("click", function () {
     renderBookmarks();
     showScreen("bookmarks");
+  });
+  resultsBtn.addEventListener("click", function () {
+    if (hasLastResults()) showResultsFromStore();
   });
   bookmarksBackBtn.addEventListener("click", function () {
     showScreen("home");
