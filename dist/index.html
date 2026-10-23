@@ -4,15 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AZ-900 Quiz Builder (Unofficial)</title>
-    <script type="module" crossorigin src="/assets/index-BjcRSRwS.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CX4EMB7G.css">
+    <script type="module" crossorigin src="/assets/index-76pFO_VQ.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-7NGdco0r.css">
   </head>
   <body>
-    <!-- Top-right icon toolbar: bookmarks -->
-    <div class="toolbar" role="toolbar" aria-label="Bookmarks">
+    <!-- Top-right icon toolbar: bookmarks, results -->
+    <div class="toolbar" role="toolbar" aria-label="App controls">
       <button id="bookmarks-btn" class="toolbar-btn" type="button" aria-label="Bookmarked questions" data-tooltip="Bookmarked questions">
         <span class="bookmark-star" aria-hidden="true">★</span>
         <span id="bookmarks-count" class="bookmarks-count" aria-hidden="true" hidden>0</span>
+      </button>
+      <button id="results-btn" class="toolbar-btn" type="button" aria-label="View last results" data-tooltip="Last results">
+        <span aria-hidden="true">📊</span>
       </button>
     </div>
 
@@ -86,6 +89,7 @@
 
         <main class="content">
           <div class="results-card">
+            <div class="print-header" aria-hidden="true">AZ-900 Quiz Builder — Results Summary</div>
             <!-- Circular progress ring. JS sets the stroke-dashoffset. -->
             <div class="results-ring-wrap">
               <svg class="results-ring" viewBox="0 0 140 140" aria-hidden="true">
@@ -114,6 +118,8 @@
             <div class="results-actions">
               <button id="retry-btn" class="btn btn-primary" type="button">Retry this topic</button>
               <button id="home-btn" class="btn btn-secondary" type="button">Pick another topic</button>
+              <button id="download-pdf-btn" class="btn btn-secondary" type="button">Download PDF</button>
+              <button id="clear-history-btn" class="btn btn-danger" type="button">Clear history</button>
             </div>
           </div>
         </main>
