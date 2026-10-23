@@ -47,11 +47,9 @@ import "./style.css";
   const muteToggleBtn = document.getElementById("mute-toggle");
   const muteIconOn = document.getElementById("mute-icon-on");
   const muteIconOff = document.getElementById("mute-icon-off");
-  const muteLabelEl = document.getElementById("mute-label");
   const themeToggleBtn = document.getElementById("theme-toggle");
   const themeIconLight = document.getElementById("theme-icon-light");
   const themeIconDark = document.getElementById("theme-icon-dark");
-  const themeLabelEl = document.getElementById("theme-label");
 
   /* ---------- App state ---------- */
   let currentTopic = null;   // topic key the user chose
@@ -219,9 +217,10 @@ import "./style.css";
   }
   function syncMuteUI() {
     muteToggleBtn.setAttribute("aria-pressed", muted ? "true" : "false");
+    muteToggleBtn.setAttribute("aria-label", muted ? "Turn sound on" : "Turn sound off");
+    muteToggleBtn.setAttribute("data-tooltip", muted ? "Sound off" : "Sound on");
     muteIconOn.hidden = muted;
     muteIconOff.hidden = !muted;
-    muteLabelEl.textContent = muted ? "Sound off" : "Sound on";
   }
   function toggleMute() {
     muted = !muted;
@@ -244,9 +243,10 @@ import "./style.css";
   function syncThemeUI() {
     document.body.classList.toggle("dark-theme", darkTheme);
     themeToggleBtn.setAttribute("aria-pressed", darkTheme ? "true" : "false");
+    themeToggleBtn.setAttribute("aria-label", darkTheme ? "Switch to light mode" : "Switch to dark mode");
+    themeToggleBtn.setAttribute("data-tooltip", darkTheme ? "Light mode" : "Dark mode");
     themeIconLight.hidden = darkTheme;
     themeIconDark.hidden = !darkTheme;
-    themeLabelEl.textContent = darkTheme ? "Light mode" : "Dark mode";
   }
   function toggleTheme() {
     darkTheme = !darkTheme;
@@ -269,6 +269,7 @@ import "./style.css";
     const n = loadBookmarks().length;
     bookmarksCountEl.textContent = n;
     bookmarksCountEl.hidden = n === 0;
+    bookmarksBtn.setAttribute("data-tooltip", n === 0 ? "Bookmarked questions" : "Bookmarked questions (" + n + ")");
   }
   function isBookmarked(q) {
     return loadBookmarks().some(function (b) { return b.id === q.id; });
