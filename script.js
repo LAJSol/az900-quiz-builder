@@ -48,6 +48,10 @@ import "./style.css";
   const muteIconOn = document.getElementById("mute-icon-on");
   const muteIconOff = document.getElementById("mute-icon-off");
   const muteLabelEl = document.getElementById("mute-label");
+  const themeToggleBtn = document.getElementById("theme-toggle");
+  const themeIconLight = document.getElementById("theme-icon-light");
+  const themeIconDark = document.getElementById("theme-icon-dark");
+  const themeLabelEl = document.getElementById("theme-label");
 
   /* ---------- App state ---------- */
   let currentTopic = null;   // topic key the user chose
@@ -223,6 +227,31 @@ import "./style.css";
     muted = !muted;
     saveMuted();
     syncMuteUI();
+  }
+
+  /* ---------- Dark theme (persisted in localStorage) ---------- */
+  const THEME_KEY = "az900_dark_theme_v1";
+  let darkTheme = false;
+
+  function loadDarkTheme() {
+    try { return localStorage.getItem(THEME_KEY) === "1"; }
+    catch (e) { return false; }
+  }
+  function saveDarkTheme() {
+    try { localStorage.setItem(THEME_KEY, darkTheme ? "1" : "0"); }
+    catch (e) { /* ignore */ }
+  }
+  function syncThemeUI() {
+    document.body.classList.toggle("dark-theme", darkTheme);
+    themeToggleBtn.setAttribute("aria-pressed", darkTheme ? "true" : "false");
+    themeIconLight.hidden = darkTheme;
+    themeIconDark.hidden = !darkTheme;
+    themeLabelEl.textContent = darkTheme ? "Light mode" : "Dark mode";
+  }
+  function toggleTheme() {
+    darkTheme = !darkTheme;
+    saveDarkTheme();
+    syncThemeUI();
   }
 
   /* ---------- Bookmarks (persisted in localStorage) ---------- */
@@ -679,6 +708,7 @@ import "./style.css";
     showScreen("home");
   });
   muteToggleBtn.addEventListener("click", toggleMute);
+  themeToggleBtn.addEventListener("click", toggleTheme);
 
   /* ============================================================
      INIT
@@ -686,5 +716,7 @@ import "./style.css";
   renderTopics();
   muted = loadMuted();
   syncMuteUI();
+  darkTheme = loadDarkTheme();
+  syncThemeUI();
   showScreen("home");
 })();
