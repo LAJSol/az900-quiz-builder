@@ -6,12 +6,16 @@
     <title>AZ-900 Quiz Builder (Unofficial)</title>
   </head>
   <body>
-    <!-- Top-right icon toolbar: bookmarks, sound, dark mode -->
-    <div class="toolbar" role="toolbar" aria-label="App controls">
+    <!-- Top-right icon toolbar: bookmarks -->
+    <div class="toolbar" role="toolbar" aria-label="Bookmarks">
       <button id="bookmarks-btn" class="toolbar-btn" type="button" aria-label="Bookmarked questions" data-tooltip="Bookmarked questions">
         <span class="bookmark-star" aria-hidden="true">★</span>
         <span id="bookmarks-count" class="bookmarks-count" aria-hidden="true" hidden>0</span>
       </button>
+    </div>
+
+    <!-- Bottom icon toolbar: sound, dark mode -->
+    <div class="toolbar-bottom" role="toolbar" aria-label="Display controls">
       <button id="mute-toggle" class="toolbar-btn" type="button" aria-pressed="false" aria-label="Toggle sound feedback" data-tooltip="Sound on">
         <span id="mute-icon-on" class="mute-icon" aria-hidden="true">🔊</span>
         <span id="mute-icon-off" class="mute-icon" aria-hidden="true" hidden>🔇</span>
