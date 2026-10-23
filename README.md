@@ -19,4 +19,4 @@ A quiz app that gives instant feedback and a clear explanation for every answer,
 HTML, CSS and JavaScript, using Bolt.new and AI-assisted prompts.
 
 ## Live demo
-https://az-900-quiz-builder-4b5c.bolt.host
+https://qbaz900.bolt.host
