@@ -92,7 +92,7 @@ p { margin: 0; }
 #app {
   flex: 1;
   width: 100%;
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
   padding: var(--space-7) var(--space-4) var(--space-7);
   display: flex;
@@ -110,7 +110,7 @@ p { margin: 0; }
 /* ---------- Header ---------- */
 .app-header { margin-bottom: var(--space-6); text-align: center; }
 .app-header h1 {
-  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  font-size: clamp(1.5rem, 4vw + 0.5rem, 2.4rem);
   font-weight: 700;
   color: var(--blue-700);
   letter-spacing: -0.01em;
@@ -124,7 +124,7 @@ p { margin: 0; }
 /* ---------- Topic cards (home) ---------- */
 .topic-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-4);
   align-items: stretch;
 }
@@ -142,7 +142,7 @@ p { margin: 0; }
   cursor: pointer;
   font: inherit;
   color: inherit;
-  min-height: 100px;
+  min-height: 110px;
   transition: transform var(--transition), box-shadow var(--transition),
               border-color var(--transition), background var(--transition);
 }
@@ -159,11 +159,11 @@ p { margin: 0; }
 
 .topic-icon {
   flex: none;
-  width: 52px;
-  height: 52px;
+  width: clamp(44px, 6vw, 56px);
+  height: clamp(44px, 6vw, 56px);
   display: grid;
   place-items: center;
-  font-size: 1.7rem;
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
   border-radius: 14px;
   background: linear-gradient(150deg, var(--blue-50), var(--blue-100));
   color: var(--blue-600);
@@ -172,7 +172,7 @@ p { margin: 0; }
 .topic-body { display: flex; flex-direction: column; }
 .topic-title {
   display: block;
-  font-size: 1.2rem;
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
   font-weight: 700;
   color: var(--neutral-900);
 }
@@ -180,7 +180,7 @@ p { margin: 0; }
   display: block;
   margin-top: var(--space-2);
   color: var(--neutral-500);
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 1vw, 0.96rem);
 }
 
 /* ---------- Quiz header: topic, score, progress ---------- */
@@ -189,7 +189,9 @@ p { margin: 0; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.95rem;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: clamp(0.85rem, 1.2vw, 0.98rem);
   color: var(--neutral-500);
   margin-bottom: var(--space-3);
 }
@@ -227,7 +229,7 @@ p { margin: 0; }
   padding: var(--space-6);
 }
 .question-text {
-  font-size: 1.3rem;
+  font-size: clamp(1.1rem, 2vw, 1.35rem);
   font-weight: 600;
   color: var(--neutral-900);
   margin-bottom: var(--space-5);
@@ -464,6 +466,7 @@ p { margin: 0; }
   justify-content: center;
   flex-wrap: wrap;
 }
+.results-actions .btn { flex: 1 1 200px; }
 
 /* Review what you got wrong */
 .review-section { margin-top: var(--space-6); text-align: left; }
@@ -841,27 +844,56 @@ body.dark-theme .app-footer {
 }
 
 /* ---------- Responsive ---------- */
+
+/* Tablet: 2-column topic cards */
+@media (min-width: 541px) and (max-width: 768px) {
+  .topic-list { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Phone: single column, proportional scaling */
 @media (max-width: 540px) {
   body { font-size: 16px; }
-  #app { padding: var(--space-5) var(--space-3) var(--space-5); }
+  #app { padding: var(--space-5) var(--space-3) var(--space-5); max-width: 100%; }
   .topic-list { grid-template-columns: 1fr; gap: var(--space-3); }
   .question-card,
   .results-card { padding: var(--space-5) var(--space-4); }
-  .question-text { font-size: 1.15rem; }
+  .question-text { font-size: 1.1rem; }
   .results-score { font-size: 2rem; }
   .results-ring-wrap { width: 150px; height: 150px; }
-  .topic-card { padding: var(--space-4); min-height: 88px; }
+  .topic-card { padding: var(--space-4); min-height: 88px; gap: var(--space-3); }
   .topic-icon { width: 44px; height: 44px; font-size: 1.4rem; }
   .topic-title { font-size: 1.05rem; }
-  .topic-desc { font-size: 0.88rem; }
+  .topic-desc { font-size: 0.85rem; }
   .btn { width: 100%; }
   .results-actions { flex-direction: column; }
+  .results-actions .btn { flex: 1 1 auto; }
+  .quiz-meta { justify-content: flex-start; }
   .toolbar { top: var(--space-3); right: var(--space-3); }
   .toolbar-btn { width: 38px; height: 38px; font-size: 1rem; }
+  .feedback { padding: var(--space-4); }
+  .feedback-explanation { font-size: 0.92rem; }
+  .option { padding: var(--space-3); gap: var(--space-2); }
+  .option-letter { width: 30px; height: 30px; font-size: 0.85rem; }
+  .option.correct::after { width: 28px; height: 28px; font-size: 0.95rem; }
 }
 
-@media (min-width: 541px) and (max-width: 768px) {
-  .topic-list { grid-template-columns: 1fr; }
+/* Very small phones */
+@media (max-width: 360px) {
+  body { font-size: 15px; }
+  #app { padding: var(--space-4) var(--space-2) var(--space-4); }
+  .app-header h1 { font-size: 1.3rem; }
+  .topic-card { padding: var(--space-3); gap: var(--space-2); }
+  .topic-icon { width: 38px; height: 38px; font-size: 1.2rem; }
+  .question-card { padding: var(--space-4) var(--space-3); }
+  .results-card { padding: var(--space-4) var(--space-3); }
+  .toolbar { gap: var(--space-1); }
+  .toolbar-btn { width: 34px; height: 34px; font-size: 0.9rem; }
+}
+
+/* Wider screens: allow 3-column card grid */
+@media (min-width: 900px) {
+  #app { max-width: 960px; }
+  .topic-list { grid-template-columns: repeat(3, 1fr); gap: var(--space-5); }
 }
 
 /* Respect reduced motion */
