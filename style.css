@@ -396,6 +396,12 @@ p { margin: 0; }
   border-color: var(--blue-200);
 }
 .btn-secondary:hover { background: var(--blue-50); border-color: var(--blue-300); }
+.btn-danger {
+  background: var(--neutral-0);
+  color: var(--error-600);
+  border-color: var(--error-100);
+}
+.btn-danger:hover { background: var(--error-50); border-color: var(--error-500); }
 
 /* ---------- Results screen ---------- */
 .results-card {
@@ -703,6 +709,12 @@ body.dark-theme .btn-secondary {
   color: var(--blue-700);
 }
 body.dark-theme .btn-secondary:hover { background: var(--blue-50); border-color: var(--blue-300); }
+body.dark-theme .btn-danger {
+  background: var(--neutral-100);
+  border-color: var(--neutral-200);
+  color: var(--error-600);
+}
+body.dark-theme .btn-danger:hover { background: var(--error-50); border-color: var(--error-500); }
 body.dark-theme .feedback {
   background: var(--neutral-50);
   border-color: var(--neutral-200);
@@ -950,4 +962,56 @@ body.dark-theme .app-footer {
 /* Respect reduced motion */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Print / PDF ---------- */
+.print-header { display: none; }
+.print-date { display: none; }
+@media print {
+  .toolbar, .toolbar-bottom, .app-footer,
+  #retry-btn, #home-btn, #download-pdf-btn, #clear-history-btn {
+    display: none !important;
+  }
+  body { background: #fff !important; }
+  .screen { display: none !important; }
+  #screen-results { display: block !important; }
+  #screen-results.is-active { display: block !important; }
+  .print-header {
+    display: block !important;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1a2230;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #ccc;
+  }
+  .results-card {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    animation: none !important;
+  }
+  .results-score { color: #1a2230 !important; }
+  .results-message { color: #333 !important; }
+  .topic-chart { background: #fff !important; border-color: #ccc !important; }
+  .topic-chart-title { color: #1a2230 !important; border-bottom-color: #ccc !important; }
+  .topic-chart-name { color: #1a2230 !important; }
+  .topic-chart-score { color: #555 !important; }
+  .topic-chart-track { background: #e5e5e5 !important; }
+  .topic-chart-fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .review-item { background: #fff5f5 !important; border-color: #f0d0d0 !important; }
+  .review-item .q { color: #1a2230 !important; }
+  .review-item .a { color: #1a7a4a !important; }
+  .review-item .e { color: #555 !important; }
+  .review-section h2 { color: #1a2230 !important; border-bottom-color: #ccc !important; }
+  .ring-track { stroke: #e5e5e5 !important; }
+  .ring-progress { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .print-date {
+    display: block !important;
+    text-align: center;
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: 1rem;
+  }
 }

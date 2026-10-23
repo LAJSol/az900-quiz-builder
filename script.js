@@ -50,6 +50,9 @@ import "./style.css";
   const themeToggleBtn = document.getElementById("theme-toggle");
   const themeIconLight = document.getElementById("theme-icon-light");
   const themeIconDark = document.getElementById("theme-icon-dark");
+  const resultsBtn = document.getElementById("results-btn");
+  const downloadPdfBtn = document.getElementById("download-pdf-btn");
+  const clearHistoryBtn = document.getElementById("clear-history-btn");
 
   /* ---------- App state ---------- */
   let currentTopic = null;   // topic key the user chose
@@ -650,6 +653,7 @@ import "./style.css";
       total: total,
       missed: quiz.missed,
       topicScores: quiz.topicScores,
+      timestamp: Date.now(),
     });
 
     showScreen("results");
@@ -779,6 +783,29 @@ import "./style.css";
     if (hasLastResults()) showResultsFromStore();
   });
   bookmarksBackBtn.addEventListener("click", function () {
+    showScreen("home");
+  });
+  downloadPdfBtn.addEventListener("click", function () {
+    var data = loadLastResults();
+    var dateStr = data && data.timestamp
+      ? new Date(data.timestamp).toLocaleDateString()
+      : new Date().toLocaleDateString();
+    var existing = document.getElementById("print-date");
+    if (existing) existing.remove();
+    var dateEl = document.createElement("p");
+    dateEl.id = "print-date";
+    dateEl.className = "print-date";
+    dateEl.textContent = "Generated: " + dateStr;
+    var card = document.querySelector("#screen-results .results-card");
+    if (card) card.appendChild(dateEl);
+    window.print();
+  });
+  clearHistoryBtn.addEventListener("click", function () {
+    if (!confirm("This will erase all saved bookmarks, scores, and quiz history. Continue?")) return;
+    localStorage.removeItem(BOOKMARK_KEY);
+    localStorage.removeItem(SCORES_KEY);
+    localStorage.removeItem(LAST_RESULTS_KEY);
+    updateBookmarksCount();
     showScreen("home");
   });
   muteToggleBtn.addEventListener("click", toggleMute);
