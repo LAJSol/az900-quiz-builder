@@ -44,10 +44,77 @@ import "./style.css";
   const bookmarksListEl = document.getElementById("bookmarks-list");
   const bookmarksEmptyEl = document.getElementById("bookmarks-empty");
   const bookmarksBackBtn = document.getElementById("bookmarks-back-btn");
+  const muteToggleBtn = document.getElementById("mute-toggle");
+  const muteIconOn = document.getElementById("mute-icon-on");
+  const muteIconOff = document.getElementById("mute-icon-off");
+  const muteLabelEl = document.getElementById("mute-label");
 
   /* ---------- App state ---------- */
   let currentTopic = null;   // topic key the user chose
   let quiz = null;           // current quiz session object (see startQuiz)
+
+  /* ---------- Audio feedback (Web Audio API) ---------- */
+  const MUTE_KEY = "az900_muted_v1";
+  let muted = false;
+  let audioCtx = null;
+
+  function loadMuted() {
+    try { return localStorage.getItem(MUTE_KEY) === "1"; }
+    catch (e) { return false; }
+  }
+  function saveMuted() {
+    try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); }
+    catch (e) { /* ignore */ }
+  }
+  function getAudioCtx() {
+    if (!audioCtx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) audioCtx = new AC();
+    }
+    return audioCtx;
+  }
+  // Play a short tone. freq in Hz, dur in seconds, type is the oscillator type.
+  function playTone(freq, dur, type, gainVal) {
+    if (muted) return;
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    // Browsers suspend audio until a user gesture; resume if needed.
+    if (ctx.state === "suspended") ctx.resume();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type || "sine";
+    osc.frequency.value = freq;
+    gain.gain.value = gainVal == null ? 0.12 : gainVal;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const now = ctx.currentTime;
+    // Soft fade-out to avoid clicks.
+    gain.gain.setValueAtTime(gain.gain.value, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    osc.start(now);
+    osc.stop(now + dur);
+  }
+  // Correct: a bright ascending two-note chime.
+  function playCorrectSound() {
+    playTone(660, 0.12, "sine", 0.14);
+    setTimeout(function () { playTone(880, 0.18, "sine", 0.14); }, 100);
+  }
+  // Wrong: a low, soft descending two-note buzz.
+  function playWrongSound() {
+    playTone(320, 0.16, "triangle", 0.12);
+    setTimeout(function () { playTone(220, 0.22, "triangle", 0.12); }, 120);
+  }
+  function syncMuteUI() {
+    muteToggleBtn.setAttribute("aria-pressed", muted ? "true" : "false");
+    muteIconOn.hidden = muted;
+    muteIconOff.hidden = !muted;
+    muteLabelEl.textContent = muted ? "Sound off" : "Sound on";
+  }
+  function toggleMute() {
+    muted = !muted;
+    saveMuted();
+    syncMuteUI();
+  }
 
   /* ---------- Bookmarks (persisted in localStorage) ---------- */
   const BOOKMARK_KEY = "az900_bookmarks_v1";
@@ -333,6 +400,10 @@ import "./style.css";
     quiz.topicScores[q.topic].total += 1;
     if (isCorrect) quiz.topicScores[q.topic].correct += 1;
 
+    // Subtle audio feedback.
+    if (isCorrect) playCorrectSound();
+    else playWrongSound();
+
     // Next button label changes on the last question.
     nextBtn.textContent = (quiz.index + 1 >= quiz.questions.length)
       ? "See results"
@@ -489,10 +560,13 @@ import "./style.css";
   bookmarksBackBtn.addEventListener("click", function () {
     showScreen("home");
   });
+  muteToggleBtn.addEventListener("click", toggleMute);
 
   /* ============================================================
      INIT
      ============================================================ */
   renderTopics();
+  muted = loadMuted();
+  syncMuteUI();
   showScreen("home");
 })();

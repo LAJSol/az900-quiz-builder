@@ -13,11 +13,18 @@
         <header class="app-header">
           <h1>AZ-900 Quiz Builder</h1>
           <p class="subtitle">Pick a topic to start practicing for the Azure Fundamentals exam.</p>
-          <button id="bookmarks-btn" class="btn btn-secondary bookmarks-btn" type="button">
-            <span class="bookmark-star" aria-hidden="true">★</span>
-            <span>Bookmarked questions</span>
-            <span id="bookmarks-count" class="bookmarks-count" aria-hidden="true">0</span>
-          </button>
+          <div class="home-actions">
+            <button id="bookmarks-btn" class="btn btn-secondary bookmarks-btn" type="button">
+              <span class="bookmark-star" aria-hidden="true">★</span>
+              <span>Bookmarked questions</span>
+              <span id="bookmarks-count" class="bookmarks-count" aria-hidden="true">0</span>
+            </button>
+            <button id="mute-toggle" class="btn btn-secondary mute-toggle" type="button" aria-pressed="false" aria-label="Toggle sound feedback">
+              <span id="mute-icon-on" class="mute-icon" aria-hidden="true">🔊</span>
+              <span id="mute-icon-off" class="mute-icon" aria-hidden="true" hidden>🔇</span>
+              <span id="mute-label">Sound on</span>
+            </button>
+          </div>
         </header>
 
         <main class="content">
