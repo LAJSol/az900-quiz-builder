@@ -4,29 +4,37 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AZ-900 Quiz Builder (Unofficial)</title>
-    <script type="module" crossorigin src="/assets/index-BTQYCdW9.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-CBEltJel.css">
+    <script type="module" crossorigin src="/assets/index-BjcRSRwS.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-CX4EMB7G.css">
   </head>
   <body>
-    <!-- App shell: three screens, only one visible at a time. -->
+    <!-- Top-right icon toolbar: bookmarks -->
+    <div class="toolbar" role="toolbar" aria-label="Bookmarks">
+      <button id="bookmarks-btn" class="toolbar-btn" type="button" aria-label="Bookmarked questions" data-tooltip="Bookmarked questions">
+        <span class="bookmark-star" aria-hidden="true">★</span>
+        <span id="bookmarks-count" class="bookmarks-count" aria-hidden="true" hidden>0</span>
+      </button>
+    </div>
+
+    <!-- Bottom icon toolbar: sound, dark mode -->
+    <div class="toolbar-bottom" role="toolbar" aria-label="Display controls">
+      <button id="mute-toggle" class="toolbar-btn" type="button" aria-pressed="false" aria-label="Toggle sound feedback" data-tooltip="Sound on">
+        <span id="mute-icon-on" class="mute-icon" aria-hidden="true">🔊</span>
+        <span id="mute-icon-off" class="mute-icon" aria-hidden="true" hidden>🔇</span>
+      </button>
+      <button id="theme-toggle" class="toolbar-btn" type="button" aria-pressed="false" aria-label="Toggle dark theme" data-tooltip="Dark mode">
+        <span id="theme-icon-light" class="theme-icon" aria-hidden="true">☀️</span>
+        <span id="theme-icon-dark" class="theme-icon" aria-hidden="true" hidden>🌙</span>
+      </button>
+    </div>
+
+    <!-- App shell: four screens, only one visible at a time. -->
     <div id="app">
       <!-- ============ HOME SCREEN ============ -->
       <section id="screen-home" class="screen is-active" aria-label="Choose a topic">
         <header class="app-header">
           <h1>AZ-900 Quiz Builder</h1>
           <p class="subtitle">Pick a topic to start practicing for the Azure Fundamentals exam.</p>
-          <div class="home-actions">
-            <button id="bookmarks-btn" class="btn btn-secondary bookmarks-btn" type="button">
-              <span class="bookmark-star" aria-hidden="true">★</span>
-              <span>Bookmarked questions</span>
-              <span id="bookmarks-count" class="bookmarks-count" aria-hidden="true">0</span>
-            </button>
-            <button id="mute-toggle" class="btn btn-secondary mute-toggle" type="button" aria-pressed="false" aria-label="Toggle sound feedback">
-              <span id="mute-icon-on" class="mute-icon" aria-hidden="true">🔊</span>
-              <span id="mute-icon-off" class="mute-icon" aria-hidden="true" hidden>🔇</span>
-              <span id="mute-label">Sound on</span>
-            </button>
-          </div>
         </header>
 
         <main class="content">
